@@ -1,0 +1,37 @@
+openapi: "3.0.0"
+info:
+  description: "NG API"
+  title: "StormBit NG"
+  version: "1.0.0"
+servers:
+  - url: "https://ng.stormbit.net/v1"
+    description: "NG API"
+paths:
+  /services:
+    get:
+      summary: "Retrieve all active services"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Service"
+        400:
+          description: "Invalid input"
+        500:
+          description: "Error"
+components:
+  schemas:
+    Service:
+      type: "object"
+      readOnly: true
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          example: "19b32011-1111-45fb-9306-4d54ab93db43"
+          readOnly: true
+
