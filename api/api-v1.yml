@@ -2,10 +2,13 @@ openapi: "3.0.0"
 info:
   description: "NG API"
   title: "StormBit NG"
-  version: "1.0.0"
+  version: "1.0.0-alpha.1"
 servers:
   - url: "https://ng.stormbit.net/v1"
-    description: "NG API"
+    description: <
+      Next Generation API for StormBit, based on `svc-registry`
+      https://ng-docs.stormbit.net/
+
 paths:
   /services:
     get:
@@ -16,22 +19,144 @@ paths:
           content:
             application/json:
               schema:
-                type: "array"
+                type: array
                 items:
                   $ref: "#/components/schemas/Service"
-        400:
-          description: "Invalid input"
         500:
           description: "Error"
+    post:
+      summary: "Attempts to register a service with the registry"
+      requestBody:
+        description: "Metadata about the service we are attempting to register."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceRegistration"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+  /services/{serviceId}:
+    get:
+      summary: "Retrieve the current state of a service"
+      parameters:
+        - in: path
+          name: serviceId
+          description: Service ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        404:
+          description: "Service not found"
+        500:
+          description: "Error"
+    delete:
+      summary: "Deregister a service"
+      description: "This can only be called with auth."
+      parameters:
+        - in: path
+          name: serviceId
+          description: Service ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        500:
+          description: <
+            Services cannot currently be updated or deleted via REST API
+            Only the Service Registry is able to modify the state of a service.
 components:
   schemas:
+  
+    #
+    # Enums
+    #
+    HealthState:
+      type: string
+      description: "An entity is either Healthy or Unhealthy"
+      readOnly: true
+      enum:
+        - healthy
+        - unhealthy
+
+    ServiceType:
+      type: string
+      description: "A known Service Type"
+      enum:
+        - irc-server
+     
+    #   
+    # Entities
+    #
     Service:
-      type: "object"
+      type: object
       readOnly: true
       properties:
         id:
-          type: "string"
-          format: "uuid"
+          type: string
+          format: uuid
+          description: "Unique ID assigned to this service."
           example: "19b32011-1111-45fb-9306-4d54ab93db43"
           readOnly: true
+        name:
+          description: "The name of the Service"
+          type: string
+        type:
+          description: "The Type this Service is registered as"
+          $ref: "#/components/schemas/ServiceType"
+        health:
+          description: "The state of this service as determined by the registry"
+          $ref: "#/components/schemas/HealthState"
+        endpoints:
+          description: "Service Endpoints for the Service"
+          type: array
+          items:
+            $ref: "#/components/schemas/ServiceEndpoint"
 
+    ServiceEndpoint:
+      type: object
+      properties:
+        host:
+          description: "Service Host"
+          example: "ridley.stormbit.net"
+          type: string
+        port:
+          description: "Service Port"
+          example: "6697"
+          type: integer
+        protocol:
+          description: "Protocol"
+          type: string
+          example: "irc"
+          enum:
+            - http
+            - irc
+            - ts6
+        secure:
+          description: "Service Encryption"
+          type: boolean
+
+    ServiceRegistration:
+      type: object
+      readOnly: false
+      properties:
+        name:
+          description: "The name of the new Service"
+          type: string
+        type:
+          description: "The type of Service to register"
+          $ref: "#/components/schemas/ServiceType"
+          
