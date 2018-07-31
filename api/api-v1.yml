@@ -3,6 +3,9 @@ info:
   description: "NG API"
   title: "StormBit NG"
   version: "1.0.0-alpha.1"
+  x-logo:
+    url: "http://github.com/stormbit.png"
+    backgroundColor: "#CCCCCC"
 servers:
   - url: "https://ng.stormbit.net/v1"
     description: <
